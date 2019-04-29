@@ -4,3 +4,5 @@
 /obj/
 /Temp/
 /Build-webgl/
+/mass disruption/
+*.zip

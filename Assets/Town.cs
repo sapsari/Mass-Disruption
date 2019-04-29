@@ -51,6 +51,8 @@ public class Town : MonoBehaviour
         new Vector2((Random.value - .5f) * (width / 2), (Random.value - .5f) * (height / 2));
 
 
+    public Texture2D batonUp, batonDown;
+
     // Start is called before the first frame update
     void StartGame()
     {
@@ -217,13 +219,25 @@ public class Town : MonoBehaviour
                 if (dist < 1)
                     p.Disperse();
             }
-            
+
+            Cursor.SetCursor(this.batonDown, Vector2.zero, CursorMode.Auto);
+            StartCoroutine(RevertCursor());
+
             /*
             Debug.Log(min);
             Debug.Log(hit.transform.position);
             Debug.Log(pos);*/
         }
     }
+
+    private IEnumerator RevertCursor()
+    {
+        yield return new WaitForSeconds(.1f);
+        Cursor.SetCursor(this.batonUp, Vector2.zero, CursorMode.Auto);
+        yield break;
+    }
+
+
 
     public bool IsOut(Vector3 pos)
     {
@@ -256,21 +270,58 @@ public class Town : MonoBehaviour
             style.fontSize = 40;
             style.normal.textColor = Color.black;
             style.alignment = TextAnchor.UpperRight;
-            //GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "DENEME", style);
+            //var content2 = new GUIContent("Score: " + Score, "Score of your rule. Survive as much as possible!");
+            //var rect2 = GUILayoutUtility.GetRect(content2, style);
+            //rect2 = new Rect(rect2.x - 1, rect2.y - 1, rect2.width + 2, rect2.height + 2);
+            //GUI.Label(rect2, content2, style);
+            //GUI.Label(new Rect(0, 0, Screen.width, Screen.height), content2, style);
             GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "Score: " + Score, style);
 
+            /*
+            var style4 = new GUIStyle(GUI.skin.label);
+            style4.fontSize = 20;
+            style4.normal.textColor = Color.black;
+            style4.alignment = TextAnchor.UpperCenter;
+
+            GUI.Label(new Rect(5, 50, Screen.width, 30), GUI.tooltip, style4);*/
+
+
+
+
+            //var style3 = new GUIStyle(style);
+            //var style3 = style;
             style.alignment = TextAnchor.UpperLeft;
-            GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "Support: " + Support, style);
+            var content = new GUIContent("Support: " + Support, "It's over when your support discontinues. Use any force necessary to keep your support!");
+            var rect = GUILayoutUtility.GetRect(content, style);
+            GUI.Label(rect, content, style);
+
+            var style2 = new GUIStyle(GUI.skin.label);
+            style2.fontSize = 20;
+            style2.normal.textColor = Color.black;
+            style2.alignment = TextAnchor.UpperCenter;
+
+            GUI.Label(new Rect(5, 50, Screen.width, 30), GUI.tooltip, style2);
         }
 
         else
         {
             var style = new GUIStyle(GUI.skin.label);
+            style.fontSize = 30;
+            style.normal.textColor = Color.black;
+            //style.alignment = TextAnchor.UpperRight;
+            style.alignment = TextAnchor.UpperCenter;
+
+            var tutorial = "You must not let people gather together, use your baton (mouseclick) if necessary";
+            
+            GUI.Label(new Rect(0, 0, Screen.width, Screen.height/2), tutorial, style);
+
+            //var style = new GUIStyle(GUI.skin.label);
             style.fontSize = 40;
             style.normal.textColor = Color.black;
             //style.alignment = TextAnchor.UpperRight;
             style.alignment = TextAnchor.MiddleCenter;
 
+            if (Support < 0)
             GUI.Label(new Rect(0, 0, Screen.width, Screen.height/2), "Game Over\nScore: " + Score, style);
 
 

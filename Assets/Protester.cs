@@ -203,7 +203,7 @@ public class Protester : MonoBehaviour
         hasWaited = true;
         isWaiting = true;
         // process pre-yield
-        //**--yield return new WaitForSeconds(Random.value * .8f);
+        yield return new WaitForSeconds(Random.value * .8f);
         // process post-yield
         isWaiting = false;
         yield break;
@@ -300,8 +300,8 @@ public class Protester : MonoBehaviour
                             this.group.protesters.Add(this);
                             this.group.protesters.Add(p);
 
-                            //StartCoroutine(this.Wait());
-                            //StartCoroutine(p.Wait());
+                            StartCoroutine(this.Wait());
+                            StartCoroutine(p.Wait());
                             this.hasWaited = false;
                             p.hasWaited = false;
                             this.destination = null;

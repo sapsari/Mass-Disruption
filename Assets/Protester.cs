@@ -71,8 +71,9 @@ public class Protester : MonoBehaviour
     SpriteRenderer spriteRenderer;
 
     public List<Protester> classMembers;
-    public List<List<Protester>> classGroups;
-    List<Protester> group;
+    public List<Mass> classGroups;
+    //List<Protester> group;
+    Mass group;
 
 
     public Color Color;
@@ -184,11 +185,11 @@ public class Protester : MonoBehaviour
 
         if (this.group != null)
         {
-            this.group.Remove(this);
-            if (this.group.Count == 0)
+            this.group.protesters.Remove(this);
+            if (this.group.protesters.Count == 0)
                 classGroups.Remove(this.group);
             else
-                this.group[0].Disperse(isAuto);
+                this.group.protesters[0].Disperse(isAuto);
             this.group = null;
         }
     }
@@ -234,10 +235,10 @@ public class Protester : MonoBehaviour
                 if (isWaiting)
                     return;
 
-                if (this.group != null && this.group.Count >= 3)
+                if (this.group != null && this.group.protesters.Count >= Town.MassThreshold)
                     return;
 
-                if (this.group != null && this.group.Count < 3)
+                if (this.group != null && this.group.protesters.Count < Town.MassThreshold)
                 {/*
                     this.classGroups.Remove(this.group);
                     foreach (var p in this.group)
@@ -287,12 +288,12 @@ public class Protester : MonoBehaviour
 
                         if (this.group == null && p.group == null)
                         {
-                            this.group = new List<Protester>();
+                            this.group = new Mass();
                             p.group = this.group;
                             classGroups.Add(group);
 
-                            this.group.Add(this);
-                            this.group.Add(p);
+                            this.group.protesters.Add(this);
+                            this.group.protesters.Add(p);
 
                             //StartCoroutine(this.Wait());
                             //StartCoroutine(p.Wait());
@@ -304,7 +305,7 @@ public class Protester : MonoBehaviour
                         else if (p.group != null)
                         {
                             this.group = p.group;
-                            this.group.Add(this);
+                            this.group.protesters.Add(this);
 
                             this.hasWaited = false;
                             this.destination = null;
@@ -312,7 +313,7 @@ public class Protester : MonoBehaviour
                         else
                         {
                             p.group = this.group;
-                            this.group.Add(p);
+                            this.group.protesters.Add(p);
 
                             p.hasWaited = false;
                             p.destination = null;

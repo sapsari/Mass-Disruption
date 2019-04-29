@@ -3,6 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
+public class Mass
+{
+    float startTime;
+    public List<Protester> protesters;
+
+    public Mass()
+    {
+        this.protesters = new List<Protester>();
+        this.startTime = Time.time;
+    }
+
+    public float TimePassed => Time.time - startTime;
+}
+
 public class Town : MonoBehaviour
 {
     public GameObject PrefabProtester;
@@ -15,16 +29,22 @@ public class Town : MonoBehaviour
     List<Protester> protestersRed = new List<Protester>();
     List<Protester> protestersGray = new List<Protester>();
 
-    List<List<Protester>> groupsBlue = new List<List<Protester>>();
-    List<List<Protester>> groupsWhite = new List<List<Protester>>();
-    List<List<Protester>> groupsYellow = new List<List<Protester>>();
-    List<List<Protester>> groupsRed = new List<List<Protester>>();
+    List<Mass> groupsBlue = new List<Mass>();
+    List<Mass> groupsWhite = new List<Mass>();
+    List<Mass> groupsYellow = new List<Mass>();
+    List<Mass> groupsRed = new List<Mass>();
 
 
     public Camera camera;
     float width = 100, height=100;
 
-    const int MassThreshold = 3;
+    public const int MassThreshold = 3;
+
+    int Score = 0, Support = 100;
+
+    Vector2 getRandPos =>
+        new Vector2((Random.value - .5f) * (width / 2), (Random.value - .5f) * (height / 2));
+
 
     // Start is called before the first frame update
     void Start()
@@ -32,52 +52,104 @@ public class Town : MonoBehaviour
         var size = 30;
         width = size;
         height = size;
-        var radius = .85f;
+        //var radius = .85f;
+        var radius = 1.085f;
 
         PoissonDiscSampler sampler = new PoissonDiscSampler(width, height, radius);
 
         foreach (Vector2 sample in sampler.Samples())
         {
-            var o = Instantiate(PrefabProtester, new Vector3(sample.x - width / 2, sample.y - height / 2, 0), Quaternion.identity);
-            //o.transform.parent = this.transform;
-            var p = o.GetComponent<Protester>();
-            p.Init();
-            p.town = this;
-            protesters.Add(p);
-
-            if (p.Color == Color.yellow)
-            {
-                p.classMembers = protestersYellow;
-                p.classGroups = groupsYellow;
-            }
-            if (p.Color == Color.white)
-            {
-                p.classMembers = protestersWhite;
-                p.classGroups = groupsWhite;
-            }
-            if (p.Color == Color.blue)
-            {
-                p.classMembers = protestersBlue;
-                p.classGroups = groupsBlue;
-            }
-            if (p.Color == Color.red)
-            {
-                p.classMembers = protestersRed;
-                p.classGroups = groupsRed;
-            }
-            if (p.Color == Color.gray)
-                p.classMembers = protestersGray;
-
-            p.classMembers.Add(p);
+            Summon(sample);
         }
 
-            //for (var i = 0; i < 100; i++)
-            //Instantiate(PrefabProtester, new Vector3(i, i, 0), Quaternion.identity);
+        //for (var i = 0; i < 100; i++)
+        //Instantiate(PrefabProtester, new Vector3(i, i, 0), Quaternion.identity);
+    }
+
+    private void Summon(Vector2 sample)
+    {
+        var o = Instantiate(PrefabProtester, new Vector3(sample.x - width / 2, sample.y - height / 2, 0), Quaternion.identity);
+        //o.transform.parent = this.transform;
+        var p = o.GetComponent<Protester>();
+        p.Init();
+        p.town = this;
+        protesters.Add(p);
+
+        if (p.Color == Color.yellow)
+        {
+            p.classMembers = protestersYellow;
+            p.classGroups = groupsYellow;
+        }
+        if (p.Color == Color.white)
+        {
+            p.classMembers = protestersWhite;
+            p.classGroups = groupsWhite;
+        }
+        if (p.Color == Color.blue)
+        {
+            p.classMembers = protestersBlue;
+            p.classGroups = groupsBlue;
+        }
+        if (p.Color == Color.red)
+        {
+            p.classMembers = protestersRed;
+            p.classGroups = groupsRed;
+        }
+        if (p.Color == Color.gray)
+            p.classMembers = protestersGray;
+
+        p.classMembers.Add(p);
+    }
+
+    int UpdateSupportAux(List<Mass> lists)
+    {
+        var sum = 0;
+        foreach(var mass in lists)
+        {
+            var count = mass.protesters.Count;
+
+            if (count == 3 && mass.TimePassed > 5)
+                sum += 1;
+
+            if (count == 4 && mass.TimePassed > 3)
+                sum += 2;
+
+            if (count == 5 && mass.TimePassed > 1)
+                sum += 3;
+
+            if (count > 5)
+                //sum += count - 2;
+                sum += 4;// count - 2;
+        }
+
+        return sum;
+    }
+
+
+    void UpdateSupport()
+    {
+        Support -= UpdateSupportAux(groupsBlue);
+        Support -= UpdateSupportAux(groupsWhite);
+        Support -= UpdateSupportAux(groupsYellow);
+        Support -= UpdateSupportAux(groupsRed);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (Support > 0)
+        {
+            var _score = (int)Time.time;
+            if (_score != Score)
+            {
+                Score = _score;
+                if (Score%2==0)
+                UpdateSupport();
+
+                Summon(getRandPos);
+            }
+        }
+
         //if (Input.GetButtonDown("Fire1") && !MouseOnObject)
         if (Input.GetMouseButtonDown(0))
         {
@@ -120,13 +192,28 @@ public class Town : MonoBehaviour
     {
         if (Application.isEditor)  // or check the app debug flag
         {
-            var text = getstr(groupsBlue) + getstr(groupsWhite) + getstr(groupsYellow) + getstr(groupsRed);
+            var text = 
+                getstr("blue", protestersBlue, groupsBlue) + 
+                getstr("whit", protestersWhite, groupsWhite) + 
+                getstr("yelw", protestersYellow, groupsYellow) + 
+                getstr("redd", protestersRed, groupsRed);
             //GUI.Label(screenRect, "Debug text");
-            GUI.Label(new Rect(0, 0, 1000, 100), text);
+            GUI.Label(new Rect(333, 0, 1000, 100), text);
         }
+
+
+        var style = new GUIStyle(GUI.skin.label);
+        style.fontSize = 40;
+        style.normal.textColor = Color.black;
+        style.alignment = TextAnchor.UpperRight;
+        //GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "DENEME", style);
+        GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "Score: " + Score, style);
+
+        style.alignment = TextAnchor.UpperLeft;
+        GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "Support: " + Support, style);
     }
 
-    string getstr(List<List<Protester>> list)
+    string getstr(string color, List<Protester> cl, List<Mass> list)
     {
         /*if (list.Count == 0)
             return "";
@@ -134,7 +221,9 @@ public class Town : MonoBehaviour
             return list[0].Count + " ";
             */
 
-        return list.Count + " " + list.Count(i => i.Count >= 3) + " " + list.Count(i => i.Count >= 4) + "\n";
+        return
+            color + " " + cl.Count + " "+
+            list.Count + " " + list.Count(i => i.protesters.Count >= 3) + " " + list.Count(i => i.protesters.Count >= 4) + "\n";
 
     }
 }

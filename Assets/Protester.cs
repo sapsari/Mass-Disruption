@@ -171,12 +171,16 @@ public class Protester : MonoBehaviour
 
     bool isDispersed;
     float disperseTime;
-    public void Disperse()
+    public void Disperse(bool isAuto = false)
     {
         Debug.Log("dispersed");
 
         isDispersed = true;
         disperseTime = Time.time + Random.value * 2 + 3;
+
+        if (isAuto)
+            disperseTime = Time.time;// + Random.value + .5f;
+
 
         if (this.group != null)
         {
@@ -184,7 +188,7 @@ public class Protester : MonoBehaviour
             if (this.group.Count == 0)
                 classGroups.Remove(this.group);
             else
-                this.group[0].Disperse();
+                this.group[0].Disperse(isAuto);
             this.group = null;
         }
     }
@@ -232,6 +236,14 @@ public class Protester : MonoBehaviour
 
                 if (this.group != null && this.group.Count >= 3)
                     return;
+
+                if (this.group != null && this.group.Count < 3)
+                {/*
+                    this.classGroups.Remove(this.group);
+                    foreach (var p in this.group)
+                        p.group = null;*/
+                    this.Disperse(true);
+                }
             }
 
             int numTries = 0;
@@ -254,7 +266,10 @@ public class Protester : MonoBehaviour
 
         var isValid = true;
 
-        if (this.Color != Color.gray && !this.isDispersed)
+        if (this.group != null)
+            isValid = false;
+
+        if (this.Color != Color.gray && !this.isDispersed && this.group == null)
             //foreach(var p in town.protesters)
             foreach (var p in this.classMembers)
             {
@@ -274,19 +289,34 @@ public class Protester : MonoBehaviour
                         {
                             this.group = new List<Protester>();
                             p.group = this.group;
+                            classGroups.Add(group);
 
                             this.group.Add(this);
                             this.group.Add(p);
+
+                            //StartCoroutine(this.Wait());
+                            //StartCoroutine(p.Wait());
+                            this.hasWaited = false;
+                            p.hasWaited = false;
+                            this.destination = null;
+                            p.destination = null;
                         }
                         else if (p.group != null)
                         {
                             this.group = p.group;
                             this.group.Add(this);
+
+                            this.hasWaited = false;
+                            this.destination = null;
                         }
                         else
                         {
                             p.group = this.group;
                             this.group.Add(p);
+
+                            p.hasWaited = false;
+                            p.destination = null;
+
                             //**-- error??
                         }
                     }

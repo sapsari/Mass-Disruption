@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class Town : MonoBehaviour
 {
@@ -23,11 +24,14 @@ public class Town : MonoBehaviour
     public Camera camera;
     float width = 100, height=100;
 
+    const int MassThreshold = 3;
+
     // Start is called before the first frame update
     void Start()
     {
-        width = 30;
-        height = 30;
+        var size = 30;
+        width = size;
+        height = size;
         var radius = .85f;
 
         PoissonDiscSampler sampler = new PoissonDiscSampler(width, height, radius);
@@ -95,9 +99,10 @@ public class Town : MonoBehaviour
                     p.Disperse();
             }
             
+            /*
             Debug.Log(min);
             Debug.Log(hit.transform.position);
-            Debug.Log(pos);
+            Debug.Log(pos);*/
         }
     }
 
@@ -109,5 +114,27 @@ public class Town : MonoBehaviour
         if (pos.y > this.height / 2 + offset) return true;
         if (pos.y < -this.height / 2 - offset) return true;
         return false;
+    }
+
+    void OnGUI()
+    {
+        if (Application.isEditor)  // or check the app debug flag
+        {
+            var text = getstr(groupsBlue) + getstr(groupsWhite) + getstr(groupsYellow) + getstr(groupsRed);
+            //GUI.Label(screenRect, "Debug text");
+            GUI.Label(new Rect(0, 0, 1000, 100), text);
+        }
+    }
+
+    string getstr(List<List<Protester>> list)
+    {
+        /*if (list.Count == 0)
+            return "";
+        else
+            return list[0].Count + " ";
+            */
+
+        return list.Count + " " + list.Count(i => i.Count >= 3) + " " + list.Count(i => i.Count >= 4) + "\n";
+
     }
 }

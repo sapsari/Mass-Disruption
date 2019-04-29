@@ -42,12 +42,17 @@ public class Town : MonoBehaviour
 
     int Score = 0, Support = 100;
 
+    enum GameState { Over, Running};
+    GameState state;
+
+    float gameStartTime;
+
     Vector2 getRandPos =>
         new Vector2((Random.value - .5f) * (width / 2), (Random.value - .5f) * (height / 2));
 
 
     // Start is called before the first frame update
-    void Start()
+    void StartGame()
     {
         var size = 30;
         width = size;
@@ -62,8 +67,14 @@ public class Town : MonoBehaviour
             Summon(sample);
         }
 
+        Score = 0;
+        Support = 100;
+        gameStartTime = Time.time;
+
         //for (var i = 0; i < 100; i++)
         //Instantiate(PrefabProtester, new Vector3(i, i, 0), Quaternion.identity);
+
+        state = GameState.Running;
     }
 
     private void Summon(Vector2 sample)
@@ -134,21 +145,57 @@ public class Town : MonoBehaviour
         Support -= UpdateSupportAux(groupsRed);
     }
 
+    void EndGame()
+    {
+        Debug.Log("end");
+
+        state = GameState.Over;
+
+        foreach(var p in protesters)
+            Destroy(p.gameObject);
+
+        protesters.Clear();
+
+        protestersBlue.Clear();
+        protestersWhite.Clear();
+        protestersYellow.Clear();
+        protestersRed.Clear();
+        protestersGray.Clear();
+
+        groupsBlue.Clear();
+        groupsWhite.Clear();
+        groupsYellow.Clear();
+        groupsRed.Clear();
+    }
+
     // Update is called once per frame
     void Update()
     {
-        if (Support > 0)
+        if (Application.isEditor && Input.GetKeyDown(KeyCode.Space))
+            Support = -1;
+
+
+        if (Support > 0 && state == GameState.Running)
         {
-            var _score = (int)Time.time;
+            //var _score = (int)Time.time;
+            var _score = (int)(Time.time - gameStartTime);
             if (_score != Score)
             {
                 Score = _score;
                 if (Score%2==0)
                 UpdateSupport();
 
-                Summon(getRandPos);
+                //Summon(getRandPos);//**--//**--
             }
         }
+        else if (state == GameState.Running)
+        {
+            //state = GameState.Over;
+            EndGame();
+        }
+
+        if (state == GameState.Over) return;
+        
 
         //if (Input.GetButtonDown("Fire1") && !MouseOnObject)
         if (Input.GetMouseButtonDown(0))
@@ -201,17 +248,42 @@ public class Town : MonoBehaviour
             GUI.Label(new Rect(333, 0, 1000, 100), text);
         }
 
+        if (state == GameState.Running)
+        {
 
-        var style = new GUIStyle(GUI.skin.label);
-        style.fontSize = 40;
-        style.normal.textColor = Color.black;
-        style.alignment = TextAnchor.UpperRight;
-        //GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "DENEME", style);
-        GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "Score: " + Score, style);
 
-        style.alignment = TextAnchor.UpperLeft;
-        GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "Support: " + Support, style);
+            var style = new GUIStyle(GUI.skin.label);
+            style.fontSize = 40;
+            style.normal.textColor = Color.black;
+            style.alignment = TextAnchor.UpperRight;
+            //GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "DENEME", style);
+            GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "Score: " + Score, style);
+
+            style.alignment = TextAnchor.UpperLeft;
+            GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "Support: " + Support, style);
+        }
+
+        else
+        {
+            var style = new GUIStyle(GUI.skin.label);
+            style.fontSize = 40;
+            style.normal.textColor = Color.black;
+            //style.alignment = TextAnchor.UpperRight;
+            style.alignment = TextAnchor.MiddleCenter;
+
+            GUI.Label(new Rect(0, 0, Screen.width, Screen.height/2), "Game Over\nScore: " + Score, style);
+
+
+            var bs = new GUIStyle(GUI.skin.button);
+            bs.fontSize = 40;
+            bs.normal.textColor = Color.black;
+            if (GUI.Button(new Rect(Screen.width/4, Screen.height/2, Screen.width/2, Screen.height/4), "Start", bs))
+                StartGame();
+
+        }
     }
+
+    
 
     string getstr(string color, List<Protester> cl, List<Mass> list)
     {

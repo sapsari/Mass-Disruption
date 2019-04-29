@@ -174,7 +174,8 @@ public class Protester : MonoBehaviour
     float disperseTime;
     public void Disperse(bool isAuto = false)
     {
-        Debug.Log("dispersed");
+        if (!isAuto)
+            Debug.Log("dispersed");
 
         isDispersed = true;
         disperseTime = Time.time + Random.value * 2 + 3;
@@ -198,12 +199,14 @@ public class Protester : MonoBehaviour
     bool isWaiting;
     private IEnumerator Wait()
     {
+        
         hasWaited = true;
         isWaiting = true;
         // process pre-yield
-        yield return new WaitForSeconds(Random.value * .8f);
+        //**--yield return new WaitForSeconds(Random.value * .8f);
         // process post-yield
         isWaiting = false;
+        yield break;
     }
 
     // Update is called once per frame
@@ -257,6 +260,8 @@ public class Protester : MonoBehaviour
                 destination = Position + new Vector3(x, y);
                 numTries++;
             } while (town.IsOut(destination.Value) || numTries > 10);
+            if (numTries > 10)
+                Debug.LogError("LOOP");
         }
 
         var delta = destination.Value - Position;
@@ -317,6 +322,8 @@ public class Protester : MonoBehaviour
 
                             p.hasWaited = false;
                             p.destination = null;
+
+                            Debug.LogWarning("WRONg?");
 
                             //**-- error??
                         }

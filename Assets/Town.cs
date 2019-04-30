@@ -3,6 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
+/*
+ * 2do
+ * 
+ * ecs+job for better performance => more agents on screen
+ * spatial partioning for perfmance
+ * 
+ * flash/highlight groups
+ * fix freeze bug, after that add agents by time, this will increase difficulty over time
+ * large groups pull nearby agents?
+ * add title to splash screen
+ * stupid webgl ui bugs
+ * groups can create some voice
+ * tooltip for score (for this fix improper ui usage)
+ * indicate largest group by axis sign
+ * juice, juice, juice
+ * 
+ */ 
+
 public class Mass
 {
     float startTime;
